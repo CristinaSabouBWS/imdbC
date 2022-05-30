@@ -25,23 +25,15 @@ class ImdbPySpider(scrapy.Spider):
     def parse_movie(self, response):
         movie_items = response.xpath("//*[@id='__next']/main/div/section[1]")
         for item in movie_items:
+            # to handdle: special char in names, different page layout: category, year, director or year and director nulll
             item = Movie()
-            # category_items = response.xpath(
-            #     "//*[@id='__next']/main/div/section[1]/section/div[3]/section/section/div[3]/div[2]/div[1]/div[1]/div/a[1]"
-            # )
-            # category_list = []
-            # for category in category_items:
-            #     category_list.append(
-            #         category.xpath(
-            #             ".//ul[@class='ipc-inline-list ipc-inline-list--show-dividers ipc-inline-list--no-wrap baseAlt']/li[@class='ipc-inline-list__item ipc-chip__text']/text()"
-            #         ).get()
-            #     )
-            # item["category"] = category_list
-            # item["category"] = response.xpath("").getall()
+            item["category"] = response.xpath(
+                "//div[@class='sc-16ede01-8 hXeKyz sc-910a7330-11 GYbFb']//li[@class='ipc-inline-list__item ipc-chip__text']/text()"
+            ).getall()
             item["date_of_scraping"] = str(date.today())
             item["directors"] = response.xpath(
                 "//*[@id='__next']/main/div/section[1]/div/section/div/div[1]/section[4]/ul/li[1]/div/ul/li/a/text()"
-            ).get()
+            ).getall()
             item["title"] = response.xpath(
                 "//*[@id='__next']/main/div/section[1]/section/div[3]/section/section/div[1]/div[1]/h1/text()"
             ).get()
@@ -51,10 +43,15 @@ class ImdbPySpider(scrapy.Spider):
             item["realease_year"] = response.xpath(
                 "//*[@id='__next']/main/div/section[1]/section/div[3]/section/section/div[1]/div[1]/div/ul/li[1]/span/text()"
             ).get()
-            # item["top_cast"] = response.xpath("").getall()
+            item["top_cast"] = response.xpath("//div[@class='sc-18baf029-7 eVsQmt']//a/text()").getall()
             item["url"] = response.url
             uid = response.url
             item["uid"] = uid[27 : len(uid) - 1]
-
-            meta = dict(item=item)
-            print(meta)
+            yield item
+        # in progress
+        # pattern = re.compile(r"[^t]const.{3}nm\d{7}")
+        # # ipdb.set_trace()
+        # arr = re.findall(pattern, response.text)
+        # arr = [x.replace('"const":"', "https://www.imdb.com/title/") for x in arr]
+        # for link in arr:
+        #     yield scrapy.Request(url=link, callback=self.parse_movie)
