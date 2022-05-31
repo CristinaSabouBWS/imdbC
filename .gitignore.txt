@@ -1,0 +1,8 @@
+*.pyc
+*.egg-info
+*.DS_Store
+.idea
+__pycache__
+.pytest_cache
+*.json
+*html

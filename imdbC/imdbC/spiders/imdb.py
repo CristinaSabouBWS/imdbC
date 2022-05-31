@@ -1,7 +1,7 @@
 import scrapy
 import re
 import json
-from imdbC.items import Movie
+from imdbC.items import Movie, Actor, ActorsAndMovies, ActorFilmography
 from datetime import date
 
 
@@ -24,34 +24,56 @@ class ImdbPySpider(scrapy.Spider):
 
     def parse_movie(self, response):
         movie_items = response.xpath("//*[@id='__next']/main/div/section[1]")
-        for item in movie_items:
+        for movie in movie_items:
             # to handdle: special char in names, different page layout: category, year, director or year and director nulll
-            item = Movie()
-            item["category"] = response.xpath(
+            movie = Movie()
+            movie["genre"] = response.xpath(
                 "//div[@class='sc-16ede01-8 hXeKyz sc-910a7330-11 GYbFb']//li[@class='ipc-inline-list__item ipc-chip__text']/text()"
             ).getall()
-            item["date_of_scraping"] = str(date.today())
-            item["directors"] = response.xpath(
+            movie["date_of_scraping"] = str(date.today())
+            movie["directors"] = response.xpath(
                 "//*[@id='__next']/main/div/section[1]/div/section/div/div[1]/section[4]/ul/li[1]/div/ul/li/a/text()"
             ).getall()
-            item["title"] = response.xpath(
+            movie["title"] = response.xpath(
                 "//*[@id='__next']/main/div/section[1]/section/div[3]/section/section/div[1]/div[1]/h1/text()"
             ).get()
-            item["rating"] = response.xpath(
+            movie["rating"] = response.xpath(
                 "//*[@id='__next']/main/div/section[1]/section/div[3]/section/section/div[3]/div[2]/div[1]/div[2]/div/div[1]/a/div/div/div[2]/div[1]/span[1]/text()"
             ).get()
-            item["realease_year"] = response.xpath(
+            movie["realease_year"] = response.xpath(
                 "//*[@id='__next']/main/div/section[1]/section/div[3]/section/section/div[1]/div[1]/div/ul/li[1]/span/text()"
             ).get()
-            item["top_cast"] = response.xpath("//div[@class='sc-18baf029-7 eVsQmt']//a/text()").getall()
-            item["url"] = response.url
+            movie["top_cast"] = response.xpath("//div[@class='sc-18baf029-7 eVsQmt']//a/text()").getall()
+            movie["url"] = response.url
             uid = response.url
-            item["uid"] = uid[27 : len(uid) - 1]
-            yield item
-        # in progress
-        # pattern = re.compile(r"[^t]const.{3}nm\d{7}")
-        # # ipdb.set_trace()
-        # arr = re.findall(pattern, response.text)
-        # arr = [x.replace('"const":"', "https://www.imdb.com/title/") for x in arr]
-        # for link in arr:
-        #     yield scrapy.Request(url=link, callback=self.parse_movie)
+            movie["uid"] = uid[27 : len(uid) - 1]
+            yield movie
+
+        pattern = re.compile(r"characters.{1}nm\d{7}")
+        arr = re.findall(pattern, response.text)
+        url_actor_base = "https://www.imdb.com/name/"
+        actor_url_set = set([x.replace("characters/", "") for x in arr])
+        for link in actor_url_set:
+            yield scrapy.Request(url=url_actor_base + link, callback=self.parse_actor)
+            actor_movie = ActorsAndMovies()
+            actor_movie["actor_uid"] = link
+            actor_movie["movie_uid"] = movie["uid"]
+            yield actor_movie
+
+    def parse_actor(self, response):
+        actor_items = response.xpath("//*[@id='content-2-wide']")
+        for actor in actor_items:
+            actor = Actor()
+            actor["name"] = response.xpath("//h1/span[@class='itemprop']/text()").get()
+            uid = response.url
+            actor["uid"] = uid[26 : len(uid) - 1]
+
+            actor["filmography_movie_url"] = response.xpath(
+                "//div[@class='filmo-category-section']/div[contains(@id,'act')]/b/a/@href"
+            ).getall()
+            # [x = ("https://www.imdb.com/title" + x) for x in arr]
+            # actor["filmography_movie_url"] = arr
+            actor["filmography_movie_title"] = response.xpath(
+                "//div[@class='filmo-category-section']/div[contains(@id,'act')]/b/a/text()"
+            ).getall()
+            yield actor

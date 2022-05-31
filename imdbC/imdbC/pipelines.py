@@ -7,6 +7,7 @@
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
 import json
+from imdbC.items import Movie, Actor, ActorsAndMovies, ActorFilmography
 
 
 class ImdbcPipeline:
@@ -16,12 +17,28 @@ class ImdbcPipeline:
 
 class SimpleStoragePipeline:
     def open_spider(self, spider):
-        self.file = open("imdb_items.json", "w")
+        self.movie = open("imdb_movie.json", "w")
+        self.actor = open("imdb_actor.json", "w")
+        self.actor_movie = open("imdb_actor_movie.json", "w")
+        # open 1 file for each type
+        # connect to db
 
     def process_item(self, item, spider):
-        line = json.dumps(ItemAdapter(item).asdict()) + "\n"
-        self.file.write(line)
-        return item
+        # if type of item = Movie insert into movie
+        if isinstance(item, Movie):
+            line = json.dumps(ItemAdapter(item).asdict()) + "\n"
+            self.movie.write(line)
+            return item
+        elif isinstance(item, Actor):
+            line = json.dumps(ItemAdapter(item).asdict()) + "\n"
+            self.actor.write(line)
+            return item
+        elif isinstance(item, ActorsAndMovies):
+            line = json.dumps(ItemAdapter(item).asdict()) + "\n"
+            self.actor_movie.write(line)
+            return item
 
     def close_spider(self, spider):
-        self.file.close()
+        self.movie.close()
+        self.actor.close()
+        self.actor_movie.close()
