@@ -2,3 +2,4 @@ Scrapy==2.6.1
 ipdb
 re
 json
+Pillow==9.1.1

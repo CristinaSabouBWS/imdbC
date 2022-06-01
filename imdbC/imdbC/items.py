@@ -11,12 +11,13 @@ class Movie(scrapy.Item):
     date_of_scraping = scrapy.Field()
     directors = scrapy.Field()
     title = scrapy.Field()
-    poster_img = scrapy.Field()
     rating = scrapy.Field()
     realease_year = scrapy.Field()
     top_cast = scrapy.Field()
     url = scrapy.Field()
     uid = scrapy.Field()
+    image_urls = scrapy.Field()
+    images = scrapy.Field()
 
 
 class Actor(scrapy.Item):
@@ -29,9 +30,3 @@ class Actor(scrapy.Item):
 class ActorsAndMovies(scrapy.Item):
     actor_uid = scrapy.Field()
     movie_uid = scrapy.Field()
-
-
-class ActorFilmography(scrapy.Item):
-    uid = scrapy.Field()
-    title = scrapy.Field()
-    url = scrapy.Field()

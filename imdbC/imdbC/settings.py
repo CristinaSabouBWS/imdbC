@@ -63,8 +63,11 @@ ROBOTSTXT_OBEY = True
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-    "imdbC.pipelines.SimpleStoragePipeline": 300,
+    "imdbC.pipelines.SimpleStoragePipeline": 305,
+    "scrapy.pipelines.images.ImagesPipeline": 299,
 }
+
+IMAGES_STORE = "images_file"
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
